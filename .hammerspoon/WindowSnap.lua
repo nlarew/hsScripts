@@ -1,13 +1,13 @@
 local snapLocations = {
   {
-    ["description"] = "Left Half (Curr)",
+    ["description"] = "Left Half (Current Monitor)",
     ["type"] = "snapLocation",
     ["hotkeys"] = {"J", "left"},
     ["xPosition"] = function(max) return max.x end,
     ["yPosition"] = function(max) return max.y end, ["width"] = function(max) return max.w / 2 end,
     ["height"] = function(max) return max.h end
   }, {
-    ["description"] = "Right Half (Curr)",
+    ["description"] = "Right Half (Current Monitor)",
     ["type"] = "snapLocation",
     ["hotkeys"] = {"L", "right"},
     ["xPosition"] = function(max) return max.x + (max.w / 2) end,
@@ -18,7 +18,7 @@ local snapLocations = {
   
   
   }, {
-    ["description"] = "Top Half (Curr)",
+    ["description"] = "Top Half (Current Monitor)",
     ["type"] = "snapLocation",
     ["hotkeys"] = {"U"},
     ["xPosition"] = function(max) return max.x end,
@@ -26,7 +26,7 @@ local snapLocations = {
     ["width"] = function(max) return max.w end,
     ["height"] = function(max) return max.h / 2 end
   }, {
-    ["description"] = "Bottom Half (Curr)",
+    ["description"] = "Bottom Half (Current Monitor)",
     ["type"] = "snapLocation",
     ["hotkeys"] = {"H"},
     ["xPosition"] = function(max) return max.x end,
@@ -37,7 +37,7 @@ local snapLocations = {
 
 
 
-    ["description"] = "Full Screen (Curr)",
+    ["description"] = "Full Screen (Current Monitor)",
     ["type"] = "snapLocation",
     ["hotkeys"] = {"I", "up"},
     ["xPosition"] = function(max) return max.x end,
@@ -54,56 +54,73 @@ local snapLocations = {
     ["width"] = function(max) return max.w / 2 end,
     ["height"] = function(max) return max.h end
   }, {
+    ["description"] = "Send to Previous Monitor",
+    ["type"] = "prevMonitor",
+    ["hotkeys"] = {"O"},
+    ["sendToScreen"] = function(s) return s end,
+    ["xPosition"] = function(max) return max.x end,
+    ["yPosition"] = function(max) return max.y end,
+    ["width"] = function(max) return max.w / 2 end,
+    ["height"] = function(max) return max.h end
+  }, {
     ["type"] = "closeAllAlerts",
     ["hotkeys"] = {"`"}
   }
 }
 
-MODE = "RIGHT_BOTTOM" --"LEFT_TOP"
-local switch_mode = function(MODE)
-  if MODE == "RIGHT_BOTTOM" then
-    return "LEFT_TOP"
-  else
-    return "RIGHT_BOTTOM"
-  end
-end
+-- local handleSnapLocations = function(snapLocation)
+--   local win = hs.window.focusedWindow()
+--   local f = win:frame()
+--   local screen = win:screen()
+--   local max = screen:fullFrame()
 
-local handleSnapLocations = function(snapLocation)
-  local win = hs.window.focusedWindow()
-  local f = win:frame()
-  local screen = win:screen()
-  local max = screen:fullFrame()
+--   f.x = snapLocation.xPosition(max)
+--   f.y = snapLocation.yPosition(max)
+--   f.w = snapLocation.width(max)
+--   f.h = snapLocation.height(max)
+--   win:setFrame(f, 0.05)
+-- end
 
-  f.x = snapLocation.xPosition(max)
-  f.y = snapLocation.yPosition(max)
-  f.w = snapLocation.width(max)
-  f.h = snapLocation.height(max)
-  win:setFrame(f, 0.05)
-end
-
-local switchToNextMonitor = function()
+local switchToMonitor = function(monitorLocation)
   local win = hs.window.focusedWindow()
     local f = win:frame()
     local currentScreen = win:screen():fullFrame()
     local nextScreen = win:screen():next():fullFrame()
+    local prevScreen = win:screen():previous():fullFrame()
   local currentFrame = {
     ["x"] = f.x,
     ["y"] = f.y,
     ["w"] = f.w,
     ["h"] = f.h
   }
-  local nextFrame = {
-    ["x"] = nextScreen.x + (currentFrame.x-currentScreen.x)*nextScreen.w/currentScreen.w,
-    ["y"] = nextScreen.y, -- TODO: This is weird because f is not a full frame so the frame.y is getting bumped by the menubar. Unfortunately it gets bumped different amounts depending on the screen!
-    ["w"] = nextScreen.w * (currentFrame.w / currentScreen.w),
-    ["h"] = nextScreen.h - menubarHeight
-  }
-  win:move(hs.geometry(
-    nextFrame.x,
-    nextFrame.y,
-    nextFrame.w,
-    nextFrame.h
-  ), win:screen():next(), 0)
+  local nextFrame
+  if monitorLocation == "next" then
+    nextFrame = {
+      ["x"] = nextScreen.x + (currentFrame.x-currentScreen.x)*nextScreen.w/currentScreen.w,
+      ["y"] = nextScreen.y, -- TODO: This is weird because f is not a full frame so the frame.y is getting bumped by the menubar. Unfortunately it gets bumped different amounts depending on the screen!
+      ["w"] = nextScreen.w * (currentFrame.w / currentScreen.w),
+      ["h"] = nextScreen.h - menubarHeight
+    }
+    win:move(hs.geometry(
+      nextFrame.x,
+      nextFrame.y,
+      nextFrame.w,
+      nextFrame.h
+    ), win:screen():next(), 0)
+  else
+    nextFrame = {
+      ["x"] = prevScreen.x + (currentFrame.x-currentScreen.x)*prevScreen.w/currentScreen.w,
+      ["y"] = prevScreen.y, -- TODO: This is weird because f is not a full frame so the frame.y is getting bumped by the menubar. Unfortunately it gets bumped different amounts depending on the screen!
+      ["w"] = prevScreen.w * (currentFrame.w / currentScreen.w),
+      ["h"] = prevScreen.h - menubarHeight
+    }
+    win:move(hs.geometry(
+      nextFrame.x,
+      nextFrame.y,
+      nextFrame.w,
+      nextFrame.h
+    ), win:screen():previous(), 0)
+  end
 end
 
 local handleKeyPress = function(tap_event)
@@ -112,7 +129,11 @@ local handleKeyPress = function(tap_event)
   if (hotkeyData ~= nil) then
     local hotkeyType = hotkeyData.type
     if(hotkeyType == "nextMonitor") then
-      switchToNextMonitor()
+      -- switchToNextMonitor()
+      switchToMonitor("next")
+    end
+    if(hotkeyType == "prevMonitor") then
+      switchToMonitor("previous")
     end
     if(hotkeyType == "snapLocation") then
       handleSnapLocations(hotkeyData)
@@ -170,97 +191,11 @@ hs.hotkey.bind(hyper, "up", function()
 end)
 
 hs.hotkey.bind(hyper, "K", function()
-  switchToNextMonitor()
+  switchToMonitor("next")
 end)
 hs.hotkey.bind(hyper, "down", function()
-  switchToNextMonitor()
+  switchToMonitor("next")
 end)
-
---[[Window Width Control (10% of window increments)]]
-hs.hotkey.bind(hyper, "space", function()
-  MODE = switch_mode(MODE)
-  hs.alert(MODE)
-end)
--- hs.hotkey.bind(hyper, "U", function()
---   local win = hs.window.focusedWindow()
---   local f = win:frame()
---   local screen = win:screen()
---   local max = screen:fullFrame()
-
---   if MODE == "LEFT_TOP" then
---     f.x = f.x - 256
---     f.y = f.y
---     f.w = f.w + 256
---     f.h = f.h
---   end
---   if MODE == "RIGHT_BOTTOM" then
---     f.x = f.x
---     f.y = f.y
---     f.w = f.w - 256
---     f.h = f.h
---   end
---   win:setFrame(f, 0.05)
--- end)
 hs.hotkey.bind(hyper, "O", function()
-  local win = hs.window.focusedWindow()
-  local f = win:frame()
-  local screen = win:screen()
-  local max = screen:fullFrame()
-  
-  if MODE == "LEFT_TOP" then
-    f.x = f.x + 256
-    f.y = f.y
-    f.w = f.w - 256
-    f.h = f.h
-  end
-  if MODE == "RIGHT_BOTTOM" then
-    f.x = f.x
-    f.y = f.y
-    f.w = f.w + 256
-    f.h = f.h
-  end
-
-  win:setFrame(f, 0.05)
+  switchToMonitor("previous")
 end)
-
--- hs.hotkey.bind(hyper, "Y", function()
---   local win = hs.window.focusedWindow()
---   local f = win:frame()
---   local screen = win:screen()
---   local max = screen:fullFrame()
-
---   if MODE == "LEFT_TOP" then
---     f.x = f.x
---     f.y = f.y - 144
---     f.w = f.w
---     f.h = f.h + 144
---   end
---   if MODE == "RIGHT_BOTTOM" then
---     f.x = f.x
---     f.y = f.y
---     f.w = f.w
---     f.h = f.h - 144
---   end
---   win:setFrame(f, 0.05)
--- end)
--- hs.hotkey.bind(hyper, "H", function()
---   local win = hs.window.focusedWindow()
---   local f = win:frame()
---   local screen = win:screen()
---   local max = screen:fullFrame()
-  
---   if MODE == "LEFT_TOP" then
---     f.x = f.x
---     f.y = f.y + 144
---     f.w = f.w
---     f.h = f.h - 144
---   end
---   if MODE == "RIGHT_BOTTOM" then
---     f.x = f.x
---     f.y = f.y
---     f.w = f.w
---     f.h = f.h + 144
---   end
-
---   win:setFrame(f, 0.05)
--- end)
