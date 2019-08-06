@@ -68,18 +68,18 @@ local snapLocations = {
   }
 }
 
--- local handleSnapLocations = function(snapLocation)
---   local win = hs.window.focusedWindow()
---   local f = win:frame()
---   local screen = win:screen()
---   local max = screen:fullFrame()
+local handleSnapLocations = function(snapLocation)
+  local win = hs.window.focusedWindow()
+  local f = win:frame()
+  local screen = win:screen()
+  local max = screen:fullFrame()
 
---   f.x = snapLocation.xPosition(max)
---   f.y = snapLocation.yPosition(max)
---   f.w = snapLocation.width(max)
---   f.h = snapLocation.height(max)
---   win:setFrame(f, 0.05)
--- end
+  f.x = snapLocation.xPosition(max)
+  f.y = snapLocation.yPosition(max)
+  f.w = snapLocation.width(max)
+  f.h = snapLocation.height(max)
+  win:setFrame(f, 0.05)
+end
 
 local switchToMonitor = function(monitorLocation)
   local win = hs.window.focusedWindow()
