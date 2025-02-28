@@ -14,9 +14,6 @@ local snapLocations = {
     ["yPosition"] = function(max) return max.y end,
     ["width"] = function(max) return max.w / 2 end,
     ["height"] = function(max) return max.h end
-  
-  
-  
   }, {
     ["description"] = "Top Half (Current Monitor)",
     ["type"] = "snapLocation",

@@ -1,18 +1,19 @@
 --[[
     Motivation: "Alert" style notifications (set in System Preferences) do not auto-dismiss.
 ]]
-
 local resolveOptions = function(options)
-  if options == nil then
-    options = {}
-  end
-  local defaults = {
-    duration=1.5
-  }
+    if options == nil then
+        options = {}
+    end
+    local defaults = {
+        duration = 1.5
+    }
 
-  if options.duration == nil then options.duration = defaults.duration end
+    if options.duration == nil then
+        options.duration = defaults.duration
+    end
 
-  return options
+    return options
 end
 
 TimeoutNotification = function(note, options)

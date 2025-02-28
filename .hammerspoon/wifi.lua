@@ -5,7 +5,7 @@ function ssidChangedCallback()
     if SSID == nil then
         SSID = "Not Connected 😞"
     end
-    wifiMenu:setTitle("(" .. SSID .. ")" )
+    wifiMenu:setTitle("(" .. SSID .. ")")
 end
 wifiWatcher = hs.wifi.watcher.new(ssidChangedCallback)
 wifiWatcher:start()
